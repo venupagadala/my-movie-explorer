@@ -1,29 +1,32 @@
 // app/search/page.tsx
-// This is a Server Component. It fetches data based on URL search parameters.
+// This is a Server Component. It fetches data based on URL search parameters for query and pagination.
 
-import { searchMovies, searchTvShows } from "@/lib/server/tmdb-api"; // Import server-side API functions
-import { TmdbMediaItem } from "@/lib/types/tmdb"; // Import types
-import MediaCard from "@/components/common/MediaCard"; // Re-use our MediaCard component
+import { searchMovies, searchTvShows } from '@/lib/server/tmdb-api';
+import { TmdbMediaItem, PaginatedResponse } from '@/lib/types/tmdb'; // Import PaginatedResponse type
+import MediaCard from '@/components/common/MediaCard';
+import PaginationControls from '@/components/common/PaginationControls'; // Import new pagination component
 
 interface SearchPageProps {
   searchParams: {
-    query?: string; // Next.js automatically passes URL query parameters here
+    query?: string;
+    page?: string; // Add page parameter for pagination
   };
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const searchQuery = searchParams.query || ""; // Get the search query from the URL, default to empty string
-  let movies: TmdbMediaItem[] = [];
-  let tvShows: TmdbMediaItem[] = [];
+  const searchQuery = searchParams.query || '';
+  const currentPage = parseInt(searchParams.page || '1', 10); // Get current page
+
+  let moviesResponse: PaginatedResponse<TmdbMediaItem> = { page: 1, results: [], total_pages: 1, total_results: 0 };
+  let tvShowsResponse: PaginatedResponse<TmdbMediaItem> = { page: 1, results: [], total_pages: 1, total_results: 0 };
   let error: string | null = null;
 
   if (searchQuery) {
-    // Only perform search if a query exists
     try {
-      // Fetch search results for both movies and TV shows in parallel
-      [movies, tvShows] = await Promise.all([
-        searchMovies(searchQuery),
-        searchTvShows(searchQuery),
+      // Fetch search results for both movies and TV shows in parallel, passing the current page
+      [moviesResponse, tvShowsResponse] = await Promise.all([
+        searchMovies(searchQuery, currentPage),
+        searchTvShows(searchQuery, currentPage),
       ]);
     } catch (err: any) {
       console.error("Error fetching search results:", err);
@@ -31,28 +34,32 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     }
   }
 
+  const movies = moviesResponse.results;
+  const tvShows = tvShowsResponse.results;
   const hasResults = movies.length > 0 || tvShows.length > 0;
+
+  // For search page, we'll use the maximum total_pages from both movie and TV searches
+  // to ensure the pagination controls cover all possible results.
+  const totalPages = Math.max(moviesResponse.total_pages, tvShowsResponse.total_pages);
+
 
   return (
     <main className="w-full p-4 md:p-8 min-h-screen bg-gray-900 text-white">
-      <section className="">
-        <p
-          className="text-2xl md:text-3xl font-extrabold mb-4
-               bg-clip-text text-blue-500 bg-gradient-to-r from-blue-400 to-purple-500
-               drop-shadow-lg animate-fade-in-up"
-        >
-          {" "}
+      <section className="text-center py-8 mb-8">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-4
+                       bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500
+                       drop-shadow-lg animate-fade-in-up">
           Search Results for "{searchQuery}"
-        </p>
-        {searchQuery === "" && (
-          <p className="text-xl text-gray-400">
-            Enter a search term in the header to find movies or TV shows.
-          </p>
+        </h1>
+        {searchQuery === '' && (
+          <p className="text-xl text-gray-400">Enter a search term in the header to find movies or TV shows.</p>
         )}
       </section>
 
       {error && (
-        <div className="text-center text-red-500 text-lg mb-8">{error}</div>
+        <div className="text-center text-red-500 text-lg mb-8">
+          {error}
+        </div>
       )}
 
       {searchQuery && !hasResults && !error && (
@@ -68,11 +75,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <h2 className="text-3xl font-bold mb-6 text-blue-300">Movies</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {movies.map((movie: TmdbMediaItem) => (
-                  // Ensure media_type is correctly set for the MediaCard link
-                  <MediaCard
-                    key={movie.id}
-                    item={{ ...movie, media_type: "movie" }}
-                  />
+                  <MediaCard key={movie.id} item={{ ...movie, media_type: 'movie' }} />
                 ))}
               </div>
             </section>
@@ -80,19 +83,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
           {tvShows.length > 0 && (
             <section className="mb-12">
-              <h2 className="text-3xl font-bold mb-6 text-purple-300">
-                TV Shows
-              </h2>
+              <h2 className="text-3xl font-bold mb-6 text-purple-300">TV Shows</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {tvShows.map((tvShow: TmdbMediaItem) => (
-                  // Ensure media_type is correctly set for the MediaCard link
-                  <MediaCard
-                    key={tvShow.id}
-                    item={{ ...tvShow, media_type: "tv" }}
-                  />
+                  <MediaCard key={tvShow.id} item={{ ...tvShow, media_type: 'tv' }} />
                 ))}
               </div>
             </section>
+          )}
+
+          {/* Pagination Controls for Search Results */}
+          {totalPages > 1 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              basePath="/search" // Base path for the search page
+            />
           )}
         </>
       )}

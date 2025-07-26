@@ -77,3 +77,11 @@ export interface TmdbTvShowDetails extends TmdbMediaItem {
   tagline: string;
   type: string;
 }
+
+// Define a common return type for paginated results
+export interface PaginatedResponse<T> {
+  page: number;
+  results: T[];
+  total_pages: number;
+  total_results: number;
+}

@@ -18,16 +18,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Movie Explorer",
   description: "Explore movies and TV shows built with Next.js and TMDB API",
-  // MODIFIED ICONS METADATA BLOCK
   icons: {
-    icon: [
-      // Link to the favicon.png in the public directory
-{ url: '/favicon.png', type: 'image/png', sizes: '32x32' }, 
-      // You can also add a 16x16 version if you have one
-      // { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
-    ],
-    // Optional: for Apple devices
-    apple: '/apple-icon.png', // If you have an apple-icon.png in public/
+    icon: {
+      url: '/favicon.png', // Correct root-relative path
+      type: 'image/png',
+      sizes: '32x32', // Explicitly state the size of your favicon.png
+    },
+    // Optional: for Apple devices (assuming apple-icon.png is in public/)
+    apple: '/apple-icon.png',
   },
 };
 

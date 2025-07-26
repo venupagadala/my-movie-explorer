@@ -5,35 +5,32 @@ import 'server-only';
 // Base URL for TMDB API
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-// Ensure API key is available from environment variables
-// This check only runs on the server side where this file is imported.
 if (!process.env.TMDB_API_KEY) {
   throw new Error("TMDB_API_KEY is not defined in environment variables. Please check your .env.local file.");
 }
 
 const API_KEY = process.env.TMDB_API_KEY;
 
+// Import types, including PaginatedResponse, from the types file
+import { TmdbMediaItem, TmdbMovieDetails, TmdbTvShowDetails, PaginatedResponse } from '../types/tmdb';
+
 /**
  * Generic function to fetch data from TMDB API.
  * Handles API key injection and basic error handling.
  * @param endpoint The TMDB API endpoint (e.g., "/trending/movie/week", "/movie/popular")
  * @param params Optional query parameters
- * @returns Parsed JSON response from the API
+ * @returns Parsed JSON response from the API, including total_pages and total_results
  */
 async function fetchFromTmdb(endpoint: string, params: Record<string, string> = {}) {
   const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
-  url.searchParams.append("api_key", API_KEY); // Add API key to every request
+  url.searchParams.append("api_key", API_KEY);
 
-  // Add any additional parameters
   for (const key in params) {
     url.searchParams.append(key, params[key]);
   }
 
   try {
-    const response = await fetch(url.toString(), {
-      // Next.js's fetch automatically handles caching for Server Components.
-      // For dynamic data that changes frequently, 'no-store' or 'no-cache' might be considered.
-    });
+    const response = await fetch(url.toString());
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ status_message: "Unknown error from TMDB" }));
@@ -50,42 +47,46 @@ async function fetchFromTmdb(endpoint: string, params: Record<string, string> = 
 
 /**
  * Fetches trending movies for the week.
- * @returns An array of TmdbMediaItem (movies)
+ * @param page The page number to fetch (defaults to 1)
+ * @returns PaginatedResponse<TmdbMediaItem>
  */
-export async function getTrendingMovies(): Promise<TmdbMediaItem[]> {
-  const data = await fetchFromTmdb("/trending/movie/week");
-  return data.results;
+export async function getTrendingMovies(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  const data = await fetchFromTmdb("/trending/movie/week", { page: String(page) });
+  return data;
 }
 
 /**
  * Fetches trending TV shows for the week.
- * @returns An array of TmdbMediaItem (TV shows)
+ * @param page The page number to fetch (defaults to 1)
+ * @returns PaginatedResponse<TmdbMediaItem>
  */
-export async function getTrendingTvShows(): Promise<TmdbMediaItem[]> {
-  const data = await fetchFromTmdb("/trending/tv/week");
-  return data.results;
+export async function getTrendingTvShows(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  const data = await fetchFromTmdb("/trending/tv/week", { page: String(page) });
+  return data;
 }
 
 /**
  * Fetches movies based on a search query.
  * @param query The search term
- * @returns An array of TmdbMediaItem (movies)
+ * @param page The page number to fetch (defaults to 1)
+ * @returns PaginatedResponse<TmdbMediaItem>
  */
-export async function searchMovies(query: string): Promise<TmdbMediaItem[]> {
-  if (!query) return [];
-  const data = await fetchFromTmdb("/search/movie", { query });
-  return data.results;
+export async function searchMovies(query: string, page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  if (!query) return { page: 1, results: [], total_pages: 0, total_results: 0 };
+  const data = await fetchFromTmdb("/search/movie", { query, page: String(page) });
+  return data;
 }
 
 /**
  * Fetches TV shows based on a search query.
  * @param query The search term
- * @returns An array of TmdbMediaItem (TV shows)
+ * @param page The page number to fetch (defaults to 1)
+ * @returns PaginatedResponse<TmdbMediaItem>
  */
-export async function searchTvShows(query: string): Promise<TmdbMediaItem[]> {
-  if (!query) return [];
-  const data = await fetchFromTmdb("/search/tv", { query });
-  return data.results;
+export async function searchTvShows(query: string, page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  if (!query) return { page: 1, results: [], total_pages: 0, total_results: 0 };
+  const data = await fetchFromTmdb("/search/tv", { query, page: String(page) });
+  return data;
 }
 
 /**
@@ -102,13 +103,33 @@ export async function getMediaDetails(mediaType: "movie" | "tv", id: string): Pr
 
 /**
  * Fetches movies that are currently playing in theaters.
- * @returns An array of TmdbMediaItem (movies)
+ * @param page The page number to fetch (defaults to 1)
+ * @returns PaginatedResponse<TmdbMediaItem>
  */
-export async function getNowPlayingMovies(): Promise<TmdbMediaItem[]> {
-  const data = await fetchFromTmdb("/movie/now_playing");
-  return data.results;
+export async function getNowPlayingMovies(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  const data = await fetchFromTmdb("/movie/now_playing", { page: String(page) });
+  return data;
 }
 
-// NOTE: Types are intentionally NOT exported from here.
-// They will be exported from lib/types/tmdb.ts
-import { TmdbMediaItem, TmdbMovieDetails, TmdbTvShowDetails } from '../types/tmdb'; // Import types for internal use
+// Optional: Function to get movie genres (for future filtering)
+export async function getMovieGenres() {
+  const data = await fetchFromTmdb("/genre/movie/list");
+  return data.genres;
+}
+
+// Optional: Function to get TV genres (for future filtering)
+export async function getTvGenres() {
+  const data = await fetchFromTmdb("/genre/tv/list");
+  return data.genres;
+}
+
+// In lib/server/tmdb-api.ts
+export async function getPopularMovies(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  const data = await fetchFromTmdb("/movie/popular", { page: String(page) });
+  return data;
+}
+
+export async function getPopularTvShows(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  const data = await fetchFromTmdb("/tv/popular", { page: String(page) });
+  return data;
+}
