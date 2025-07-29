@@ -1,70 +1,50 @@
 // app/movie/popular/page.tsx
-// This is a Server Component for displaying popular movies with pagination.
+// This is a Server Component.
 
-import { getNowPlayingMovies, getPopularMovies } from '@/lib/server/tmdb-api'; // Assuming getPopularMovies exists or we'll add it
+import { getPopularMovies } from '@/lib/server/tmdb-api';
 import { TmdbMediaItem, PaginatedResponse } from '@/lib/types/tmdb';
 import MediaCard from '@/components/common/MediaCard';
 import PaginationControls from '@/components/common/PaginationControls';
 
 interface PopularMoviesPageProps {
-  searchParams: {
-    page?: string;
-  };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
 export default async function PopularMoviesPage({ searchParams }: PopularMoviesPageProps) {
-  const currentPage = parseInt(searchParams.page || '1', 10);
+  const currentPage = Number(searchParams?.page ?? '1');
 
-  let moviesResponse: PaginatedResponse<TmdbMediaItem> = { page: 1, results: [], total_pages: 1, total_results: 0 };
-  let error: string | null = null;
+  const popularMoviesData: PaginatedResponse<TmdbMediaItem> = await getPopularMovies(currentPage);
 
-  try {
-    // We will use getNowPlayingMovies for "Popular Movies" for now,
-    // as TMDB's /movie/popular endpoint often returns a very similar list.
-    // If you want a strictly "popular" list, we'd need to add a getPopularMovies function.
-    // For consistency with the header, let's use getNowPlayingMovies for now.
-    // Or, if you prefer, we can add a new `getPopularMovies` to tmdb-api.ts.
-    // Let's assume getNowPlayingMovies is sufficient for "Popular Movies" tab.
-    moviesResponse = await getNowPlayingMovies(currentPage); // Fetch popular/now playing movies
-  } catch (err: any) {
-    console.error("Error fetching popular movies:", err);
-    error = "Failed to fetch popular movies. Please try again later.";
-  }
-
-  const movies = moviesResponse.results;
+  const popularMovies = popularMoviesData.results;
+  const totalPages = popularMoviesData.total_pages;
 
   return (
-    <main className="w-full p-4 md:p-8 min-h-screen bg-gray-900 text-white">
-      <section className="text-center py-8 mb-8">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-4
-                       bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500
-                       drop-shadow-lg animate-fade-in-up">
+    // Main container for the page content.
+    // Ensure pt-30 is present here to prevent content from being hidden by the fixed header.
+    <main className="w-full p-4 md:p-8 min-h-screen bg-gray-900 text-white "> 
+      <section className="mb-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center
+                       bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-green-400
+                       drop-shadow-lg animate-fade-in-up pt-10">
           Popular Movies
         </h1>
-        {error && (
-          <div className="text-center text-red-500 text-lg mb-8">
-            {error}
+
+        {popularMovies.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {popularMovies.map((movie: TmdbMediaItem) => (
+              <MediaCard key={movie.id} item={movie} />
+            ))}
           </div>
+        ) : (
+          <p className="text-center text-xl text-gray-400">No popular movies found.</p>
         )}
-      </section>
 
-      {movies.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {movies.map((movie: TmdbMediaItem) => (
-            <MediaCard key={movie.id} item={{ ...movie, media_type: 'movie' }} />
-          ))}
-        </div>
-      ) : (
-        !error && <p className="text-center text-gray-400 text-xl">No popular movies found.</p>
-      )}
-
-      {moviesResponse.total_pages > 1 && (
         <PaginationControls
           currentPage={currentPage}
-          totalPages={moviesResponse.total_pages}
-          basePath="/movie/popular" // Base path for this specific page
+          totalPages={totalPages}
+          basePath="/movie/popular"
         />
-      )}
+      </section>
     </main>
   );
 }

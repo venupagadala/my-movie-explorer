@@ -11,8 +11,29 @@ if (!process.env.TMDB_API_KEY) {
 
 const API_KEY = process.env.TMDB_API_KEY;
 
-// Import types, including PaginatedResponse, from the types file
+// Import types from the types file
 import { TmdbMediaItem, TmdbMovieDetails, TmdbTvShowDetails, PaginatedResponse } from '../types/tmdb';
+
+// --- NEW INTERFACES FOR VIDEO DATA (Moved from types file as they are specific to API response) ---
+export interface TmdbVideo {
+  iso_639_1: string;
+  iso_3166_1: string;
+  name: string;
+  key: string; // This is the YouTube video ID
+  site: string; // e.g., "YouTube"
+  size: number;
+  type: string; // e.g., "Trailer", "Teaser", "Clip"
+  official: boolean;
+  published_at: string;
+  id: string;
+}
+
+export interface TmdbVideoResponse {
+  id: number;
+  results: TmdbVideo[];
+}
+// --- END NEW INTERFACES ---
+
 
 /**
  * Generic function to fetch data from TMDB API.
@@ -102,12 +123,35 @@ export async function getMediaDetails(mediaType: "movie" | "tv", id: string): Pr
 }
 
 /**
+ * Fetches videos (trailers, teasers, etc.) for a specific movie or TV show.
+ * @param mediaType "movie" or "tv"
+ * @param id The ID of the movie/TV show
+ * @returns TmdbVideoResponse containing an array of videos
+ */
+export async function getMediaVideos(mediaType: "movie" | "tv", id: string): Promise<TmdbVideoResponse> {
+  if (!mediaType || !id) throw new Error("mediaType and id are required to get media videos.");
+  const data = await fetchFromTmdb(`/${mediaType}/${id}/videos`);
+  return data;
+}
+
+/**
  * Fetches movies that are currently playing in theaters.
  * @param page The page number to fetch (defaults to 1)
  * @returns PaginatedResponse<TmdbMediaItem>
  */
 export async function getNowPlayingMovies(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
   const data = await fetchFromTmdb("/movie/now_playing", { page: String(page) });
+  return data;
+}
+
+// These functions were added in your previous input. Keeping them for now.
+export async function getPopularMovies(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  const data = await fetchFromTmdb("/movie/popular", { page: String(page) });
+  return data;
+}
+
+export async function getPopularTvShows(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
+  const data = await fetchFromTmdb("/tv/popular", { page: String(page) });
   return data;
 }
 
@@ -121,15 +165,4 @@ export async function getMovieGenres() {
 export async function getTvGenres() {
   const data = await fetchFromTmdb("/genre/tv/list");
   return data.genres;
-}
-
-// In lib/server/tmdb-api.ts
-export async function getPopularMovies(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
-  const data = await fetchFromTmdb("/movie/popular", { page: String(page) });
-  return data;
-}
-
-export async function getPopularTvShows(page: number = 1): Promise<PaginatedResponse<TmdbMediaItem>> {
-  const data = await fetchFromTmdb("/tv/popular", { page: String(page) });
-  return data;
 }

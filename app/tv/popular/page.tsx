@@ -34,7 +34,7 @@ export default async function PopularTvShowsPage({ searchParams }: PopularTvShow
       <section className="text-center py-8 mb-8">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-4
                        bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500
-                       drop-shadow-lg animate-fade-in-up">
+                       drop-shadow-lg animate-fade-in-up pt-5">
           Popular TV Shows
         </h1>
         {error && (

@@ -85,3 +85,23 @@ export interface PaginatedResponse<T> {
   total_pages: number;
   total_results: number;
 }
+
+// --- NEW INTERFACES FOR VIDEO DATA (Moved here from tmdb-api.ts) ---
+export interface TmdbVideo {
+  iso_639_1: string;
+  iso_3166_1: string;
+  name: string;
+  key: string; // This is the YouTube video ID
+  site: string; // e.g., "YouTube"
+  size: number;
+  type: string; // e.g., "Trailer", "Teaser", "Clip"
+  official: boolean;
+  published_at: string;
+  id: string;
+}
+
+export interface TmdbVideoResponse {
+  id: number;
+  results: TmdbVideo[];
+}
+// --- END NEW INTERFACES ---
