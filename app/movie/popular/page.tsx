@@ -20,7 +20,6 @@ export default async function PopularMoviesPage({ searchParams }: PopularMoviesP
 
   return (
     // Main container for the page content.
-    // Ensure pt-30 is present here to prevent content from being hidden by the fixed header.
     <main className="w-full p-4 md:p-8 min-h-screen bg-gray-900 text-white "> 
       <section className="mb-12">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center

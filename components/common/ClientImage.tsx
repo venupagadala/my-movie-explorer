@@ -1,38 +1,49 @@
 // components/common/ClientImage.tsx
-'use client'; // This component MUST be a Client Component
+'use client';
 
 import Image, { ImageProps } from 'next/image';
 import React from 'react';
 
-// Base URL for TMDB images (same as in MediaCard and detail page)
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/";
 
-const getPlaceholderImageUrl = (size: string = 'w500') => {
-  // Use a placeholder that matches the aspect ratio for general images
-  // For a 500x750 poster, 2:3 aspect ratio. For a backdrop (e.g., 1280x720), 16:9.
-  if (size.includes('w500')) return `https://placehold.co/png/500x750/1f2937/FFFFFF?text=No+Image`;
-  if (size.includes('w1280')) return `https://placehold.co/png/1280x720/1f2937/FFFFFF?text=No+Image`;
-  return `https://placehold.co/png/500x750/1f2937/FFFFFF?text=No+Image`; // Default fallback
+/**
+ * Generates a placeholder image URL based on desired dimensions.
+ * @param width Desired width for the placeholder.
+ * @param height Desired height for the placeholder.
+ * @returns A URL for a PNG placeholder image.
+ */
+const getPlaceholderImageUrl = (width?: number | string, height?: number | string): string => {
+  const defaultWidth = 500;
+  const defaultHeight = 750; // Standard poster aspect ratio
+
+  // Use provided dimensions if available, otherwise fall back to defaults
+  const finalWidth = width ? String(width).replace('px', '') : defaultWidth;
+  const finalHeight = height ? String(height).replace('px', '') : defaultHeight;
+
+  return `https://placehold.co/png/${finalWidth}x${finalHeight}/1f2937/FFFFFF?text=No+Image`;
 };
 
-
 interface ClientImageProps extends ImageProps {
-  // You can add any custom props here if needed
-  // For now, we're just extending ImageProps
+  // Extends Next.js ImageProps, no custom props added here.
 }
 
+/**
+ * A wrapper around Next.js's `Image` component that handles image loading errors.
+ * If the primary image fails to load, it falls back to a placeholder.
+ */
 export default function ClientImage(props: ClientImageProps) {
   const [imgSrc, setImgSrc] = React.useState(props.src);
   const [imgAlt, setImgAlt] = React.useState(props.alt);
 
-  // This onError handler will now only run on the client
+  /**
+   * Updates the image source to a placeholder and alt text if the image fails to load.
+   * Calls any original `onError` handler passed via props.
+   */
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    setImgSrc(getPlaceholderImageUrl(props.sizes || props.width ? (props.width + 'x' + props.height) : 'w500')); // Try to match placeholder size
+    setImgSrc(getPlaceholderImageUrl(props.width, props.height));
     setImgAlt("Image not available");
-    // Optionally, you can call the original onError if it was passed
-    if (props.onError) {
-      props.onError(e);
-    }
+
+    props.onError?.(e); // Call original onError if it exists
   };
 
   return (
@@ -44,3 +55,5 @@ export default function ClientImage(props: ClientImageProps) {
     />
   );
 }
+// This component can be used anywhere in the app where a client-side image is needed.
+// It will automatically handle image loading errors and provide a fallback placeholder image.
