@@ -2,7 +2,7 @@
 'use client'; // This is a Client Component
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 interface PaginationControlsProps {
@@ -13,17 +13,21 @@ interface PaginationControlsProps {
   basePath?: string;
   // Optional: A query parameter name for the page, defaults to 'page'
   pageQueryParam?: string;
+  // NEW: ID of the element to scroll to after pagination
+  scrollToId?: string;
 }
 
 /**
  * PaginationControls component provides "Previous", "Next", and a range of page number buttons
  * to navigate through paginated content. It updates the URL's query parameters.
+ * It also scrolls to a specified element ID after navigation.
  */
 export default function PaginationControls({
   currentPage,
   totalPages,
   basePath,
   pageQueryParam = 'page', // Default query param name is 'page'
+  scrollToId, // Destructure the new prop
 }: PaginationControlsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -37,12 +41,38 @@ export default function PaginationControls({
     return `${basePath || pathname}?${params.toString()}`;
   }, [pathname, searchParams, basePath, pageQueryParam]);
 
+  // Function to scroll to the specified element ID
+  const scrollToElement = useCallback(() => {
+    if (scrollToId) {
+      const element = document.getElementById(scrollToId);
+      if (element) {
+        // Use 'smooth' behavior for a nice animation
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [scrollToId]);
+
   // Handle navigation to a specific page
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      router.push(createPageURL(page));
+      // Crucial change: Add { scroll: false } to prevent Next.js from
+      // automatically scrolling to the top of the page on navigation.
+      router.push(createPageURL(page), { scroll: false }); // <--- MODIFIED HERE
+      // Then, manually scroll to the desired element
+      scrollToElement();
     }
   };
+
+  // If the page loads with a specific scroll ID in the URL, scroll to it
+  // This helps if the user navigates directly to a paginated URL (e.g., from a bookmark)
+  useEffect(() => {
+    // Only scroll if the page query parameter is present and not page 1
+    // This avoids scrolling on the initial load of the very first page.
+    if (searchParams.get(pageQueryParam) && Number(searchParams.get(pageQueryParam)) > 1) {
+      scrollToElement();
+    }
+  }, [searchParams, pageQueryParam, scrollToElement]);
+
 
   // Logic to determine which page numbers to display
   const getPageNumbers = () => {

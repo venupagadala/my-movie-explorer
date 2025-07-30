@@ -61,7 +61,11 @@ export default function Header() {
         // Use setTimeout to allow the DOM to update before attempting to focus
         setTimeout(() => {
           // Check if searchInputRef.current is an HTMLInputElement before calling focus()
-          if (searchInputRef.current && typeof searchInputRef.current.focus === 'function') {
+          if (
+            searchInputRef.current &&
+            searchInputRef.current instanceof HTMLInputElement &&
+            typeof searchInputRef.current.focus === 'function'
+          ) {
             searchInputRef.current.focus();
           }
         }, 100);
@@ -121,7 +125,7 @@ export default function Header() {
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out
                   ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
-                  bg-gray-900/80 backdrop-blur-md shadow-xl`} // Tailwind classes for fixed position, animation, transparency, blur, and shadow
+                  bg-gray-900/500 backdrop-blur-md shadow-xl`} // <--- MODIFIED: Opacity changed to /50
     >
       <div className="container mx-auto flex justify-between items-center p-4"> {/* Main header content container with consistent padding */}
         {/* Logo/App Title - Links to the homepage */}
@@ -136,20 +140,20 @@ export default function Header() {
 
         {/* Desktop Navigation Links and Search Icon */}
         <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/" className="text-lg font-medium hover:text-blue-400 transition-colors duration-200">
+          <Link href="/" className="text-lg font-medium hover:text-blue-400 transition-colors duration-200 font-semibold cursor-pointer">
             Home
           </Link>
-          <Link href="/movie/popular" className="text-lg font-medium hover:text-blue-400 transition-colors duration-200">
+          <Link href="/movie/popular" className="text-lg font-medium hover:text-blue-400 transition-colors duration-200 font-semibold cursor-pointer">
             Movies
           </Link>
-          <Link href="/tv/popular" className="text-lg font-medium hover:text-blue-400 transition-colors duration-200">
+          <Link href="/tv/popular" className="text-lg font-medium hover:text-blue-400 transition-colors duration-200 font-semibold cursor-pointer">
             TV Shows
           </Link>
 
           {/* Search Icon Button (Desktop) - Toggles search input visibility */}
           <button
             onClick={toggleSearchInput}
-            className="p-2 rounded-full bg-gray-800 hover:bg-blue-600 hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="p-2 rounded-full bg-gray-800 hover:bg-blue-600 hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
             aria-label="Toggle search input"
           >
             <FaSearch className="text-xl" />
@@ -181,7 +185,7 @@ export default function Header() {
       <div
         className={`absolute left-0 w-full bg-gray-700 shadow-lg overflow-hidden transition-all duration-300 ease-in-out
                     ${isSearchInputVisible ? 'max-h-20 opacity-100 py-4' : 'max-h-0 opacity-0 py-0'}
-                    ${isVisible ? 'top-[calc(100%+0px)]' : 'top-0'}`} 
+                    ${isVisible ? 'top-[calc(100%+0px)]' : 'top-0'}`}
       >
         <form onSubmit={handleSearchSubmit} className="container mx-auto px-4 flex items-center space-x-2">
           <div className="relative flex-grow">
@@ -213,7 +217,7 @@ export default function Header() {
       <nav
         className={`md:hidden bg-gray-700 shadow-lg overflow-hidden transition-all duration-300 ease-in-out
                     ${isMobileMenuOpen ? 'max-h-60 opacity-100 py-4' : 'max-h-0 opacity-0 py-0'}
-                    ${isVisible ? 'top-[calc(100%+0px)]' : 'top-0'}`} 
+                    ${isVisible ? 'top-[calc(100%+0px)]' : 'top-0'}`}
       >
         <div className="flex flex-col items-center space-y-4">
           <Link href="/" className="text-lg font-medium hover:text-blue-400 transition-colors duration-200" onClick={toggleMobileMenu}>

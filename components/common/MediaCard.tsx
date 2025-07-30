@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { TmdbMediaItem } from '@/lib/types/tmdb'; // <--- NEW IMPORT for types
+import { TmdbMediaItem } from '@/lib/types/tmdb'; 
 import { FaStar } from 'react-icons/fa';
 
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/";
