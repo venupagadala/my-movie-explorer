@@ -6,14 +6,13 @@ import { TmdbMediaItem, PaginatedResponse } from '@/lib/types/tmdb';
 import MediaCard from '@/components/common/MediaCard';
 import PaginationControls from '@/components/common/PaginationControls';
 
-interface PopularTvShowsPageProps {
-  searchParams: {
-    page?: string;
-  };
-}
-
-export default async function PopularTvShowsPage({ searchParams }: PopularTvShowsPageProps) {
-  const currentPage = parseInt(searchParams.page || '1', 10);
+export default async function PopularTvShowsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedParams = await searchParams;
+  const currentPage = parseInt((resolvedParams.page as string) || '1', 10);
 
   let tvShowsResponse: PaginatedResponse<TmdbMediaItem> = { page: 1, results: [], total_pages: 1, total_results: 0 };
   let error: string | null = null;
