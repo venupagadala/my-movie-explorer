@@ -3,12 +3,14 @@ import { TmdbMediaItem, PaginatedResponse } from '@/lib/types/tmdb';
 import MediaCard from '@/components/common/MediaCard';
 import PaginationControls from '@/components/common/PaginationControls';
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 export default async function PopularMoviesPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 }) {
-  const resolvedParams = await searchParams; // Always a Promise in Next.js 15
+  const resolvedParams = await searchParams; // Await because it's a Promise
   const currentPage = Number(resolvedParams?.page ?? '1');
 
   const popularMoviesData: PaginatedResponse<TmdbMediaItem> = await getPopularMovies(currentPage);
@@ -17,7 +19,7 @@ export default async function PopularMoviesPage({
 
   return (
     <main className="w-full p-4 md:p-8 min-h-screen bg-gray-900 text-white pt-20">
-      <section id="popular-movies-section" className="mb-12">
+      <section id="popular-movies-section" className="mb-12 pt-10">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center
                        bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-green-400
                        drop-shadow-lg animate-fade-in-up">
