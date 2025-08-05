@@ -7,15 +7,17 @@ import MediaCard from '@/components/common/MediaCard';
 import MovieCarousel from '@/components/common/MovieCarousel';
 import PaginationControls from '@/components/common/PaginationControls';
 
-interface HomePageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedParams = await searchParams;
 
-export default async function HomePage({ searchParams }: HomePageProps) {
   // Current page values from query params for pagination
-  const currentMoviePage = Number(searchParams?.moviePage ?? '1');
-  const currentTvPage = Number(searchParams?.tvPage ?? '1');
-  const currentCarouselPage = Number(searchParams?.carouselPage ?? '1');
+  const currentMoviePage = Number(resolvedParams?.moviePage ?? '1');
+  const currentTvPage = Number(resolvedParams?.tvPage ?? '1');
+  const currentCarouselPage = Number(resolvedParams?.carouselPage ?? '1');
 
   // Fetch data concurrently
   const [trendingMoviesData, trendingTvShowsData, nowPlayingMoviesData] = await Promise.all([
