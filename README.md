@@ -1,6 +1,9 @@
 
 # 🎬 Movie Explorer
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-%2300ADEF.svg?style=for-the-badge&logo=vercel&logoColor=white)](https://my-movie-explorer-1s25uvcay-venus-projects-53cd17d5.vercel.app/)
+
+
 Welcome to **Movie Explorer** — a modern web application for discovering and exploring movies and TV shows!  
 Built with **Next.js 14** and **Tailwind CSS**, this app delivers a **fast, responsive, and feature-rich** browsing experience.
 
